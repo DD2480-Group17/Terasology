@@ -18,17 +18,11 @@ package org.terasology.input.lwjgl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import net.java.games.input.Component;
+import net.java.games.input.*;
 import net.java.games.input.Component.Identifier;
 import net.java.games.input.Component.Identifier.Button;
 import net.java.games.input.Component.Identifier.Axis;
-import net.java.games.input.Controller;
 import net.java.games.input.Controller.Type;
-import net.java.games.input.ControllerEnvironment;
-import net.java.games.input.ControllerEvent;
-import net.java.games.input.ControllerListener;
-import net.java.games.input.Event;
-import net.java.games.input.EventQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.config.ControllerConfig;
@@ -83,27 +77,21 @@ public class JInputControllerDevice implements ControllerDevice {
 
     public JInputControllerDevice(ControllerConfig config) {
         this.config = config;
-        ControllerEnvironment env = ControllerEnvironment.getDefaultEnvironment();
 
-        // Unfortunately, no existing implementation
-        env.addControllerListener(new ControllerListener() {
+        // get controllers from a new environment if possible.
+        Controller[] controllers_;
+        DirectAndRawInputEnvironmentPlugin directEnv = new DirectAndRawInputEnvironmentPlugin();
+        if (directEnv.isSupported()) {
+            controllers_ = directEnv.getControllers();
+        } else {
+            controllers_ = ControllerEnvironment.getDefaultEnvironment().getControllers();
+        }
+        logger.info("Discovered {} input devices", controllers_.length);
 
-            @Override
-            public void controllerRemoved(ControllerEvent ev) {
-                Controller controller = ev.getController();
-                logger.info("Controller disconnected: " + controller.getName());
-                removeController(controller);
-            }
-
-            @Override
-            public void controllerAdded(ControllerEvent ev) {
-                Controller controller = ev.getController();
-                logger.info("Controller connected: " + controller.getName());
-                addController(controller);
-            }
-        });
-        logger.info("Discovered {} input devices", env.getControllers().length);
-        for (Controller c : env.getControllers()) {
+        // empty current controllers list
+        this.controllers.clear();
+        // add newly discovered controllers_ using addController(c)
+        for (Controller c : controllers_) {
             addController(c);
         }
     }

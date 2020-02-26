@@ -15,6 +15,7 @@
  */
 package org.terasology.rendering.nui.layers.hud;
 
+import org.lwjgl.Sys;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.common.DisplayNameComponent;
@@ -24,6 +25,10 @@ import org.terasology.registry.In;
 import org.terasology.rendering.nui.databinding.ReadOnlyBinding;
 import org.terasology.rendering.nui.layers.ingame.inventory.InventoryCell;
 import org.terasology.rendering.nui.widgets.UIText;
+
+import java.io.IOException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class InventoryHud extends CoreHudWidget {
 
@@ -35,7 +40,6 @@ public class InventoryHud extends CoreHudWidget {
 
     private UICrosshair crosshair;
     private UIText toolTipText;
-
 
     @Override
     public void initialise() {
@@ -52,7 +56,8 @@ public class InventoryHud extends CoreHudWidget {
         crosshair = find("crosshair", UICrosshair.class);
         toolTipText = find("toolTipText", UIText.class);
         toolTipText.bindText(new CurrentSlotItem(localPlayer));
-        //toolTipText.bindVisible(new CurrentSlotEmpty((localPlayer)));
+        Thread thread = new Thread(new AnimationThread(localPlayer,toolTipText, 2000));
+        thread.start();
     }
 
     public void setChargeAmount(float amount) {
@@ -77,8 +82,12 @@ public class InventoryHud extends CoreHudWidget {
         }
     }
 
+    /**
+     * This method get´s called by UIText to update text segement
+     */
     private final class CurrentSlotItem extends ReadOnlyBinding<String> {
         private LocalPlayer localPlayer;
+        private int prev = 0;
 
         private CurrentSlotItem (LocalPlayer localPlayer) {
             this.localPlayer = localPlayer;
@@ -86,8 +95,11 @@ public class InventoryHud extends CoreHudWidget {
         @Override
         public String get() {
             SelectedInventorySlotComponent component = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class);
+
             for (InventoryCell cell : findAll(InventoryCell.class)) {
                 if (cell.getTargetItem().getComponent(DisplayNameComponent.class) != null && cell.getTargetSlot() == component.slot) {
+
+                    //System.err.println(cell.getTargetItem().getComponent(DisplayNameComponent.class).name);
                     return cell.getTargetItem().getComponent(DisplayNameComponent.class).name;
                 }
             }
@@ -95,21 +107,43 @@ public class InventoryHud extends CoreHudWidget {
         }
     }
 
-    private final class CurrentSlotEmpty extends ReadOnlyBinding<Boolean> {
+    /**
+     * AnimationThread monitors the localplayer, if the player changes items the thread set the text to visible othervise
+     * invisible
+     */
+    private class AnimationThread implements Runnable{
+        private UIText uiText;
+        private long waitTime;
         private LocalPlayer localPlayer;
 
-        private CurrentSlotEmpty (LocalPlayer localPlayer) {
+        //used to avoid duplicate calls
+        private int prev = -1;
+
+        public AnimationThread(LocalPlayer localPlayer,UIText ref, long waitTime){
+            uiText = ref;
+            this.waitTime = waitTime;
             this.localPlayer = localPlayer;
         }
+
         @Override
-        public Boolean get() {
-            SelectedInventorySlotComponent component = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class);
-            for (InventoryCell cell : findAll(InventoryCell.class)) {
-                if (cell.getTargetItem().getComponent(DisplayNameComponent.class) != null && cell.getTargetSlot() == component.slot) {
-                    return true;
+        public void run() {
+            while (true){
+                int slot = -1;
+                if(localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class) != null)
+                    slot = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class).slot;
+                if(slot != prev){
+                    prev = slot;
+                    uiText.setVisible(true);
+                    try {
+                        Thread.sleep(waitTime);
+                        uiText.setVisible(false);
+                        Thread.sleep(waitTime);
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
                 }
             }
-            return false;
         }
     }
 }

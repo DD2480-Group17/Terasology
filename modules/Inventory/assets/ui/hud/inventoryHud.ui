@@ -79,19 +79,20 @@
                 }
             },
               {
-                            "type": "UIText",
-                            "id": "toolTipText",
-                            "text": "",
-                            "layoutInfo": {
-                                "width": 150,
-                                "position-bottom": {
-                                    "offset": -200
-                                },
-                                "position-right": {
-                                    "offset": 0
-                                }
-                            }
-                        }
+                "type": "UIText",
+                "id": "toolTipText",
+                "text": "",
+                "layoutInfo": {
+                    "width": 150,
+                   "position-horizontal-center": {
+                        "offset":-200
+                    },
+                    "position-bottom": {
+                        "widget": "toolbar",
+                        "target": "BOTTOM"
+                    }
+                 }
+              }
         ]
     }
 }

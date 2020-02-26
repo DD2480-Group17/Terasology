@@ -28,7 +28,7 @@
                     "position-bottom": {
                         "target": "TOP",
                         "widget": "inventory",
-                        "offset": 16
+                        "offset": -600
                     },
                     "position-horizontal-center": {}
                 }

@@ -117,12 +117,20 @@ public class InventoryHud extends CoreHudWidget {
         private LocalPlayer localPlayer;
 
         //used to avoid duplicate calls
-        private int prev = -1;
+        int prev = -1;
 
         public AnimationThread(LocalPlayer localPlayer,UIText ref, long waitTime){
             uiText = ref;
             this.waitTime = waitTime;
             this.localPlayer = localPlayer;
+        }
+
+        /**
+         * Returns the previous inventory slot
+         * @return ID of previous inventory slot
+         */
+        public int getPrev(){
+            return prev;
         }
 
         /**
@@ -133,20 +141,22 @@ public class InventoryHud extends CoreHudWidget {
         public void run() {
             while (true){
                 int slot = -1;
-                if(localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class) != null)
-                    slot = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class).slot;
-                if (uiText != null) {
-                    if (slot != prev) {
-                        prev = slot;
-                        uiText.setVisible(true);
-                        try {
-                            Thread.sleep(waitTime);
-                            uiText.setVisible(false);
-                            Thread.sleep(waitTime);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                if(uiText != null) {
+                    if (localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class) != null)
+                        slot = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class).slot;
+                    if (uiText != null) {
+                        if (slot != prev) {
+                            prev = slot;
+                            uiText.setVisible(true);
+                            try {
+                                Thread.sleep(waitTime);
+                                uiText.setVisible(false);
+                                Thread.sleep(waitTime);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
 
+                        }
                     }
                 }
             }

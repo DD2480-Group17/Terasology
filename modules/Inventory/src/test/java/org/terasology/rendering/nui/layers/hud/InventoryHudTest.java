@@ -24,16 +24,34 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InventoryHudTest {
 
+    /**
+     * teatAnimationClassCheckThreadAlive test the class animationthread in inventoryhud, if it´s possible to create a animationthread
+     * and run it, this test is successful.
+     */
     @Test
-    public void teatAnimationClass(){
+    public void teatAnimationClassCheckThreadAlive(){
         LocalPlayer localPlayer = new LocalPlayer();
-
-        UIText text = new UIText();
-        InventoryHud.AnimationThread animationThread = new InventoryHud.AnimationThread(localPlayer, text, 2000);
+        InventoryHud.AnimationThread animationThread = new InventoryHud.AnimationThread(localPlayer, null, 2000);
         Thread a = new Thread(animationThread);
         a.start();
 
-        assertFalse(text.isVisible());
+        assertTrue(a.isAlive());
+    }
+    /**
+     * teatAnimationClassCheckThreadDuringChanges test the class animationthread in inventoryhud, by trying to modify it´s prevalue 10000 times, if
+     * thre thread does not crash, this test is successful.
+     */
+    @Test
+    public void teatAnimationClassCheckThreadDuringChanges(){
+        LocalPlayer localPlayer = new LocalPlayer();
+        InventoryHud.AnimationThread animationThread = new InventoryHud.AnimationThread(localPlayer, null, 2000);
+        Thread a = new Thread(animationThread);
+        a.start();
+
+        for(int i= 0; i < 100000; i++){
+            animationThread.prev = i;
+        }
+        assertTrue(a.isAlive());
     }
 
 }

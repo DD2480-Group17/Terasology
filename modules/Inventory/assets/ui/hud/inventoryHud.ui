@@ -85,14 +85,20 @@
                 "layoutInfo": {
                     "width": 150,
                    "position-horizontal-center": {
-                        "offset":-200
+                        "offset":-190
+                    },
+                    "position-top": {
+                      "target": "BOTTOM",
+                      "offset": 280,
+                      "widget": "crosshair"
                     },
                     "position-bottom": {
-                        "widget": "toolbar",
-                        "target": "BOTTOM"
+                        "target": "TOP",
+                        "offset": 3,
+                        "widget": "toolbar"
                     }
-                 }
-              }
+                }
+            }
         ]
     }
 }

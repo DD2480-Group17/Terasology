@@ -41,6 +41,9 @@ public class InventoryHud extends CoreHudWidget {
     private UICrosshair crosshair;
     private UIText toolTipText;
 
+    /**
+     * Initialize the hud by binding tooltip and crosshair to relevant elements on screen
+     */
     @Override
     public void initialise() {
         for (InventoryCell cell : findAll(InventoryCell.class)) {
@@ -87,7 +90,6 @@ public class InventoryHud extends CoreHudWidget {
      */
     private final class CurrentSlotItem extends ReadOnlyBinding<String> {
         private LocalPlayer localPlayer;
-        private int prev = 0;
 
         private CurrentSlotItem (LocalPlayer localPlayer) {
             this.localPlayer = localPlayer;
@@ -98,8 +100,6 @@ public class InventoryHud extends CoreHudWidget {
 
             for (InventoryCell cell : findAll(InventoryCell.class)) {
                 if (cell.getTargetItem().getComponent(DisplayNameComponent.class) != null && cell.getTargetSlot() == component.slot) {
-
-                    //System.err.println(cell.getTargetItem().getComponent(DisplayNameComponent.class).name);
                     return cell.getTargetItem().getComponent(DisplayNameComponent.class).name;
                 }
             }
@@ -111,7 +111,7 @@ public class InventoryHud extends CoreHudWidget {
      * AnimationThread monitors the localplayer, if the player changes items the thread set the text to visible othervise
      * invisible
      */
-    private class AnimationThread implements Runnable{
+    public static class AnimationThread implements Runnable{
         private UIText uiText;
         private long waitTime;
         private LocalPlayer localPlayer;
@@ -125,23 +125,29 @@ public class InventoryHud extends CoreHudWidget {
             this.localPlayer = localPlayer;
         }
 
+        /**
+         * The run method checks if the user has changed item, if so set the UI to visible in 2 seconds
+         */
+
         @Override
         public void run() {
             while (true){
                 int slot = -1;
                 if(localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class) != null)
                     slot = localPlayer.getCharacterEntity().getComponent(SelectedInventorySlotComponent.class).slot;
-                if(slot != prev){
-                    prev = slot;
-                    uiText.setVisible(true);
-                    try {
-                        Thread.sleep(waitTime);
-                        uiText.setVisible(false);
-                        Thread.sleep(waitTime);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
+                if (uiText != null) {
+                    if (slot != prev) {
+                        prev = slot;
+                        uiText.setVisible(true);
+                        try {
+                            Thread.sleep(waitTime);
+                            uiText.setVisible(false);
+                            Thread.sleep(waitTime);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
+                    }
                 }
             }
         }
